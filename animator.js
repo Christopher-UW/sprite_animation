@@ -15,6 +15,15 @@ class Animator {
 
         const frame = this.currentFrame();
 
+        // debug info
+        ctx.font = '25px monospace';
+        ctx.fillStyle = 'white';
+        ctx.fillText(`tick: ${tick}`, 50, 250);
+        ctx.fillText(`elapsedTime: ${this.elapsedTime}`, 50, 300);
+        ctx.fillText(`totalTime: ${this.totalTime}`, 50, 350);
+        ctx.fillText(`frameDuration: ${this.frameDuration}`, 50, 400);
+        ctx.fillText(`frame: ${frame}`, 50, 450);
+
         ctx.drawImage(this.spritesheet,
                 this.xStart + this.width * frame, this.yStart,
                 this.width, this.height, x, y,
@@ -29,4 +38,5 @@ class Animator {
     isDone() {
         return(this.elapsedTime >= this.totalTime);
     };
+
 };
