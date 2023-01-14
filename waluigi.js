@@ -2,20 +2,24 @@ class Waluigi {
     constructor(game) {
         this.game = game;
         this.animator = new Animator(ASSET_MANAGER.getAsset("running.png"), 0, 0, 38, 46, 8, 0.5, true);
-        this.animaMan = new AnimationManager(ASSET_MANAGER.getAsset("running.png"));
+        
         this.x = 0;
         this.y = 10;
         this.scale = 2;
         this.speed = 0;
         this.startXoffset = 100;
 
+        // this.animaMan = new AnimationManager(ASSET_MANAGER.getAsset("running.png"));
+        // this.animaMan.addSpriteSet('beta', 2, 3, 46, [3, 36, 80, 119, 155, 186, 226, 267]);
+        // this.animaMan.addAnimation('beta',[[0,1],[1,1],[2,1],[3,1],[4,1],[5,1],[6,1],[7,1]]);
+        //console.log(this.animaMan.spriteSets.beta.xList);
 
-        this.animaMan.addSpriteFrames('beta', 2, 3, 46, [3, 36, 80, 119, 155, 186, 226, 267]);
-        this.animaMan.addSpriteAnimation('beta',[[0,1],[1,1],[2,1],[3,1],[4,1],[5,1],[6,1],[7,1]]);
-
-        console.log(this.animaMan.spriteFrames.beta.xList);
-
-
+        this.anima = new AnimationManager();
+        this.anima.addSpriteSheet('running', ASSET_MANAGER.getAsset("running.png"));
+        this.anima.addSpriteSet('testSet', 'running', 0, 0, 304, 46, [3, 36, 80, 119, 155, 186, 226, 267])
+        this.anima.addAnimation('testAnim', 'testSet', [0,1,2,3,4,5,6,7], [0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5])
+        
+        console.log(this.anima)
 
     };
 
@@ -33,5 +37,6 @@ class Waluigi {
         }
         
         this.animator.drawFrame(this.game.clockTick, ctx, this.x + this.startXoffset, this.y, this.scale);
+        this.anima.runAnimation(this.game.clockTick, ctx, 'testAnim', 200, this.y);
     };
 }
