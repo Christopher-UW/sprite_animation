@@ -8,7 +8,7 @@ class AnimationManager {
     /**
      * Adds a SpriteSheet to the collection
      * @param {string} id 
-     * @param {Image} spriteSheet 
+     * @param {string} spriteSheet 
      */
     addSpriteSheet(id, spriteSheet) {
         // TODO: check for stuff
@@ -20,12 +20,12 @@ class AnimationManager {
      * 
      * Adds a SpriteSet to the collection
      * @param {string} id The unique ID of this SpriteSet
-     * @param {object} sheetName Unique ID of SpriteSheet this SpriteSet uses
+     * @param {string} sheetName Unique ID of SpriteSheet this SpriteSet uses
      * @param {number} xOrig X-cord of origin
      * @param {number} yOrig Y-cord of origin
      * @param {number} width Total width of Sprite Set
      * @param {number} height height Total height of Sprite Set
-     * @param {Array} xlist List of x-cord points where each frame in set starts
+     * @param {number[]} xlist List of x-cord points where each frame in set starts
      */ 
     addSpriteSet(id, sheetName, xOrig, yOrig, width, height, xList) { // id should by symbol 
         if (id instanceof SpriteSet && typeof sheetName === 'undefined') {
@@ -47,10 +47,10 @@ class AnimationManager {
 
     /**
      * 
-     * @param {string} id The unique ID of this Animation
-     * @param {SpriteSet} spriteSetName Unique ID of SpriteSet this Animation uses
-     * @param {Array[numbers]} fSequence In-order list of sprites in animation 
-     * @param {Array[numbers]} fTiming In-order list of frame durations (milliseconds)
+     * @param {string | Animation} id The unique ID of this Animation, or a pre-built Animation object
+     * @param {string} spriteSetName Unique ID of SpriteSet this Animation uses
+     * @param {number[]} fSequence In-order list of sprites in animation 
+     * @param {number[]} fTiming In-order list of frame durations (milliseconds)
      */
     addAnimation(id, spriteSetName, fSequence, fTiming) {
         if (id instanceof Animation && typeof spriteSetName === 'undefined') {
@@ -61,10 +61,9 @@ class AnimationManager {
             return;
         }
         if (fSequence.length !== fTiming.length) {
-            console.error(`frame miscount! Seq.len=${fSequence.length}  Times.len=${fTiming.length}`);
-            return; // Willy-Wonka-Wack-Attack: GOOD DAY SIR!
+            // Willy-Wonka-Wack-Attack: GOOD DAY SIR!
+            throw new Error(`fSequence.length = ${fSequence.length} but fTiming.length = ${fTiming.length}!`);
         }
-
         if (this.animations.has(id)) {
             console.log(`addAnimation: animations.${id} has been overridden!`);
         }
@@ -75,43 +74,40 @@ class AnimationManager {
     }
 
     runAnimation(tick, ctx, id, x, y) {
-        let ania = this.animations.get(id);
-        ania.drawFrame(tick, ctx, x, y)
-        // drawFrame(tick, ctx, dx, dy)
+        let anna = this.animations.get(id);
+        anna.drawFrame(tick, ctx, x, y, 2)
     }
 
 
 }
 
 
-/*
+/**
  * SpriteSet®
- * @param {string} id The unique ID of this SpriteSet
- * @param {object} sheet SpriteSheet that this SpriteSet uses
- * @param {number} xOrig X-cord of origin
- * @param {number} yOrig Y-cord of origin
- * @param {number} width Total width of Sprite Set
- * @param {number} height Total height of Sprite Set
- * @param {Array[numbers]} xlist List of x-cord point where each frame in set starts
+ * contains a set of sprites that can be used as anmimation frames by
+ * the Animation class.
  */
 class SpriteSet {
     /**
-     * 
      * @param {string} id The unique ID of this SpriteSet
-     * @param {object} sheet SpriteSheet that this SpriteSet uses
+     * @param {SpriteSheet} sheet SpriteSheet that this SpriteSet uses
      * @param {number} xOrig X-cord of origin
      * @param {number} yOrig Y-cord of origin
      * @param {number} width Total width of Sprite Set
      * @param {number} height height Total height of Sprite Set
-     * @param {Array} xlist List of x-cord points where each frame in set starts
+     * @param {number[]} xlist List of x-cord points where each frame in set starts
      */
     constructor(id, sheet, xOrig, yOrig, width, height, xlist) {
         Object.assign(this, {id, sheet, xOrig, yOrig, width, height, xlist});
     }
 
     getSprite(SpriteFrame) { // a unique sprite to be used for frames of animation
-        if (typeof SpriteFrame !== 'number' || SpriteFrame >= this.xlist.length || SpriteFrame < 0) {
-            console.error(`spriteSets.${this.id}.getFrameStats: ${SpriteFrame} is not a valid frame number`)
+        if (SpriteFrame >= this.xlist.length || SpriteFrame < 0) {
+            console.error(`spriteSets.${this.id}.getFrameStats: ${SpriteFrame} is out of range`)
+        }
+        if (typeof SpriteFrame !== 'number') {
+            //console.error(`spriteSets.${this.id}.getFrameStats: ${SpriteFrame} is not valid input`)
+            throw new Error(`spriteSets.${this.id}.getFrameStats: ${SpriteFrame} is not valid input`)
         }
         const sx = this.xOrig + this.xlist[SpriteFrame];
         const sy = this.yOrig;
@@ -124,88 +120,68 @@ class SpriteSet {
 
 };
 
-/*
- * 
- * @param {string} id The unique ID of this Animation
- * @param {SpriteSet} spriteSet see SpriteSet®
- * @param {Array[numbers]} fSequence In-order list of sprites in animation
- * @param {Array[numbers]} fTiming In-order list of frame durations (milliseconds)
+/**
+ * Animation™ makes the animation magic
  */
 class Animation {
     /**
-     * 
      * @param {string} id The unique ID of this Animation
      * @param {SpriteSet} spriteSet see SpriteSet® 
-     * @param {Array[numbers]} fSequence In-order list of sprites in animation 
-     * @param {Array[numbers]} fTiming In-order list of frame durations (milliseconds)
+     * @param {number[]} fSequence In-order list of sprites in animation 
+     * @param {number[]} fTiming In-order list of frame durations (milliseconds)
      */
     constructor(id, spriteSet, fSequence, fTiming) {
         if (fSequence.length !== fTiming.length) {
-            throw new Error('fSequence and fTiming are not same length');
+            throw new Error('Animation: fSequence and fTiming are not same length');
         }
         
-        Object.assign(this, {id, sSet: spriteSet, seq: fSequence, time: fTiming});
-        this.frameCount = this.seq.length;
+        Object.assign(this, {id, spriteSet, fSequence, fTiming});
+        this.fCount = this.fSequence.length;  
         
-        // temp values for testing
-        this.isEnabled = true;
-        this.looping = true;
-        this.eTime = 0;
-        this.cFrame = 0;
-        this.T_d = this.time[this.cFrame];
-
-    }
-
-    getFrame() {
-        if (this.cFrame > this.frameCount) {
-            throw new Error('Animation.getFrame: cFrame > frameCount');
-        }
-
-        if (this.cFrame == this.frameCount) {
-            if (this.looping) {
-                // methods
-                this.eTime = 0;
-                this.cFrame = 0;
-                this.T_d = this.time[cFrame];
-                // puts in
-            } else {
-                //end it
-            }
-        }
-
-        if (this.eTime > this.T_d) {
-            this.cFrame++;
-            this.T_d += this.time[this.cFrame];
-        }
-
-
-
-        return this.seq[this.cFrame];
-    }
-
-    drawFrame(tick, ctx, dx, dy) {
-        
-        let frameNum = this.getFrame();                       // sprt:    0       1    2    3        4
-        let sprt = this.sSet.getSprite(frameNum); // ==> array [spriteSheet, sx, sy, sWidth, sHeight]
-        let dWidth = sprt[3]; let dHeight = sprt[4]; // :!: TODO :!: MAKE SCALING OPTIONS
-        ctx.drawImage(sprt[0], sprt[1], sprt[2], sprt[3], sprt[4], dx, dy, dWidth, dHeight);
-
-        //console.log(frameNum);
-        // do at end??? I THINK
-        this.eTime += tick;
-    }
-
-    disable() {
-        this.isEnabled = false;
-        this.looping = false;
-        this.elapsedTime = Infinity;
+        this.enable(true);
     }
 
     enable(looping) {
         this.isEnabled = true;
-        this.looping = looping;
+        this.isLooping = looping;
         this.elapsedTime = 0;
-        
+        this.currFrame = 0;
+        this.nextFrameAt = this.fTiming[0];
+    }
+
+    disable() {
+        this.isEnabled = false;
+        this.isLooping = false;
+        this.elapsedTime = Infinity;
+        this.currFrame = -1;
+        this.nextFrameAt = Infinity;
+    }
+
+    getFrame() {
+        if (this.elapsedTime < this.nextFrameAt) {
+            return this.fSequence[this.currFrame]
+        }
+        else if (this.currFrame < this.fCount - 1) { // 0 -> 6
+            this.currFrame++;
+            this.nextFrameAt += this.fTiming[this.currFrame];
+            return this.fSequence[this.currFrame]
+        }
+        else { // if currFrame == fCount - 1 ie 7 :: TIME TO LOOOOOOOP
+            this.elapsedTime = 0;
+            this.currFrame = 0;
+            this.nextFrameAt = this.fTiming[this.currFrame];
+            return this.fSequence[this.currFrame]
+        }
+    }
+
+    drawFrame(tick, ctx, dx, dy, xScale, yScale = xScale) {
+        let frameNum = this.getFrame();                   // sprite[]:     0        1   2     3        4
+        let sprite = this.spriteSet.getSprite(frameNum); // ==> array [spriteSheet, sx, sy, sWidth, sHeight]
+        let dWidth  = xScale * sprite[3];
+        let dHeight = yScale * sprite[4];
+        ctx.drawImage(sprite[0], sprite[1], sprite[2], sprite[3], sprite[4], dx, dy, dWidth, dHeight);
+
+        this.elapsedTime += tick;
     }
 
 }
