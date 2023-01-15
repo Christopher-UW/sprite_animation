@@ -1,6 +1,6 @@
 class AnimationManager {
     constructor() {
-        this.spriteSheets = new Map(); // <string: id, object: Image (from AssetManager)>
+        this.spriteSheets = new Map(); // <string: id, object: Image Obj (from AssetManager)>
         this.spriteSets  =  new Map(); // <string: id, object: SpriteSet>
         this.animations  =  new Map(); // <string: id, object: Animation>
     }
@@ -73,9 +73,13 @@ class AnimationManager {
 
     }
 
-    runAnimation(tick, ctx, id, x, y) {
+    runAnimation(tick, ctx, id, dx, dy, xScale, yScale) {
         let anna = this.animations.get(id);
-        anna.drawFrame(tick, ctx, x, y, 2)
+        anna.drawFrame(tick, ctx, dx, dy, xScale, yScale)
+    }
+
+    resetAnimation(id) {
+        this.animations.get(id).init();
     }
 
 
@@ -138,35 +142,28 @@ class Animation {
         Object.assign(this, {id, spriteSet, fSequence, fTiming});
         this.fCount = this.fSequence.length;  
         
-        this.enable(true);
+        this.init();
+
+        this.DEBUG = true;
     }
 
-    enable(looping) {
-        this.isEnabled = true;
-        this.isLooping = looping;
+    init() { // also use to reset animation
         this.elapsedTime = 0;
         this.currFrame = 0;
         this.nextFrameAt = this.fTiming[0];
     }
 
-    disable() {
-        this.isEnabled = false;
-        this.isLooping = false;
-        this.elapsedTime = Infinity;
-        this.currFrame = -1;
-        this.nextFrameAt = Infinity;
-    }
 
     getFrame() {
         if (this.elapsedTime < this.nextFrameAt) {
             return this.fSequence[this.currFrame]
         }
-        else if (this.currFrame < this.fCount - 1) { // 0 -> 6
+        else if (this.currFrame < this.fCount - 1) {
             this.currFrame++;
             this.nextFrameAt += this.fTiming[this.currFrame];
             return this.fSequence[this.currFrame]
         }
-        else { // if currFrame == fCount - 1 ie 7 :: TIME TO LOOOOOOOP
+        else { // if currFrame is the last frame
             this.elapsedTime = 0;
             this.currFrame = 0;
             this.nextFrameAt = this.fTiming[this.currFrame];
@@ -181,7 +178,22 @@ class Animation {
         let dHeight = yScale * sprite[4];
         ctx.drawImage(sprite[0], sprite[1], sprite[2], sprite[3], sprite[4], dx, dy, dWidth, dHeight);
 
+        if (this.DEBUG) {
+            ctx.lineWidth = 1;
+            ctx.fillStyle = "rgba(100, 220, 255, 1)";
+            ctx.strokeStyle = "rgba(50, 255, 50, 0.8)";
+            ctx.font = '12px monospace';
+            
+            ctx.strokeRect(dx, dy, dWidth, dHeight);
+            ctx.fillText('s:'+frameNum, dx, dy-8); // sprite number
+            ctx.fillText('f:'+this.fSequence[this.currFrame], dx +35, dy-8); // animation frame number
+            ctx.fillText('t:'+this.fTiming[this.currFrame], dx +70, dy-8); // animation frame duration (sec)
+            ctx.fillText('w:'+dWidth, dx + (dWidth/2)-12 , dy + dHeight+15); // width of sprite frame
+            ctx.fillText('h:'+dHeight, dx + dWidth+5, dy + (dHeight/2)+5);  // height of sprite frame
+        }
+
         this.elapsedTime += tick;
     }
+
 
 }
