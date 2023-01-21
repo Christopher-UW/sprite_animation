@@ -78,7 +78,7 @@ class AnimationManager {
             console.log(`addAnimation: animations.${id} has been overridden!`);
         }
 
-        // fTiming.map(x => x * 100 / animaSpeed); // linear speed adjustment
+        
 
         const setObj = this.spriteSets.get(spriteSetName); // Animation class constructor wants the SpriteSet object
         this.animations.set(id, new Animation(id, setObj, fSequence, fTiming));
@@ -97,8 +97,8 @@ class AnimationManager {
         this.spriteSets.get(id).drawSprite(ctx, sprite, dx, dy, xScale, yScale);
     }
 
-    runAnimation(tick, ctx, id, loop, animaSpeed, dx, dy, xScale, yScale) {
-        this.animations.get(id).drawFrame(tick, ctx, loop, animaSpeed, dx, dy, xScale, yScale)
+    runAnimation(tick, ctx, id, dx, dy, xScale, yScale) {
+        this.animations.get(id).renderAnimation(tick, ctx, dx, dy, xScale, yScale)
     }
 
     resetAnimation(...animations) {
@@ -145,9 +145,8 @@ class SpriteSet {
         return [this.sheet, sx, sy, sWidth, sHeight];
     }
 
-    drawSprite(ctx, sprite, dx, dy, xScale, yScale = xScale) {
-        //ctx.drawImage(sprite[0], sprite[1], sprite[2], sprite[3], sprite[4], dx, dy, dWidth, dHeight);
-        const info = this.getSprite(sprite);
+    drawSprite(ctx, spriteNum, dx, dy, xScale, yScale = xScale) {
+        const info = this.getSprite(spriteNum);
         let dWidth  = xScale * info[3];
         let dHeight = yScale * info[4];
         ctx.drawImage(info[0], info[1], info[2], info[3], info[4], dx, dy, dWidth, dHeight);
@@ -156,10 +155,10 @@ class SpriteSet {
             ctx.lineWidth = 1;
             ctx.fillStyle = "rgba(100, 220, 255, 1)";
             ctx.strokeStyle = "rgba(50, 255, 50, 0.8)";
-            ctx.font = '12px monospace';
+            ctx.font = '10px monospace';
             
             ctx.strokeRect(dx, dy, dWidth, dHeight);
-            ctx.fillText('s:'+sprite, dx, dy-8); // sprite number
+            ctx.fillText('s:'+spriteNum, dx, dy-5); // sprite number
             ctx.fillText('w:'+dWidth, dx + (dWidth/2)-12 , dy + dHeight+15); // width of sprite
             ctx.fillText('h:'+dHeight, dx + dWidth+5, dy + (dHeight/2)+5);  // height of sprite
         }
@@ -178,19 +177,18 @@ class Animation {
      * @param {number[]} fTiming In-order list of frame durations (milliseconds)
      */
     constructor(id, spriteSet, fSequence, fTiming) {
-        if (fSequence.length !== fTiming.length) {
+        if (fSequence.length !== fTiming.length)
             throw new Error('Animation: fSequence and fTiming are not same length');
-        }
         
         Object.assign(this, {id, spriteSet, fSequence, fTiming});
+        this.adjFTiming = [...this.fTiming];
         this.fCount = this.fSequence.length;
+
         this.loop = false;
-        this.aniSpeed = 100; // <- 100% ex 50 = 50% = half speed
-        
         this.init();
     }
 
-    init() { // also use to reset animation
+    init() { // also used to reset animation
         this.elapsedTime = 0;
         this.currFrame = 0;
         this.nextFrameAt = this.fTiming[0];
@@ -201,49 +199,44 @@ class Animation {
     }
 
     setAnimaSpeed(animationSpeed) {
-        this.aniSpeed = animationSpeed;
+        this.adjFTiming = [...this.fTiming];
+        this.adjFTiming.map(x => x * 100 / animationSpeed); // linear speed adjustment
     }
 
-    getFrame() {
+    calcFrame() {
         if (this.elapsedTime < this.nextFrameAt) {
             return this.fSequence[this.currFrame]
         }
         else if (this.currFrame < this.fCount - 1) {
             this.currFrame++;
-            this.nextFrameAt += this.fTiming[this.currFrame];
+            this.nextFrameAt += this.adjFTiming[this.currFrame];
             return this.fSequence[this.currFrame]
         }
         else { // if currFrame is the last frame
             this.elapsedTime = 0;
             this.currFrame = 0;
-            this.nextFrameAt = this.fTiming[this.currFrame];
+            this.nextFrameAt = this.adjFTiming[this.currFrame];
             return this.fSequence[this.currFrame]
         }
     }
 
-    drawFrame(tick, ctx, dx, dy, xScale, yScale = xScale) { //tick, ctx, loop, animaSpeed, dx, dy, xScale, yScale
-        let frameNum = this.getFrame();                   // sprite[]:     0        1   2     3        4
-        let sprite = this.spriteSet.getSprite(frameNum); // ==> array [spriteSheet, sx, sy, sWidth, sHeight]
-        let dWidth  = xScale * sprite[3];
-        let dHeight = yScale * sprite[4];
-        ctx.drawImage(sprite[0], sprite[1], sprite[2], sprite[3], sprite[4], dx, dy, dWidth, dHeight);
+    renderAnimation(tick, ctx, dx, dy, xScale, yScale = xScale) {
+        let frameNum = this.calcFrame();
+        this.spriteSet.drawSprite(ctx, frameNum, dx, dy, xScale, yScale)
 
         if (DEBUG) {
             ctx.lineWidth = 1;
             ctx.fillStyle = "rgba(100, 220, 255, 1)";
             ctx.strokeStyle = "rgba(50, 255, 50, 0.8)";
-            ctx.font = '12px monospace';
-            
-            ctx.strokeRect(dx, dy, dWidth, dHeight);
-            ctx.fillText('s:'+frameNum, dx, dy-8); // sprite number
-            ctx.fillText('f:'+this.fSequence[this.currFrame], dx +35, dy-8); // animation frame number
-            ctx.fillText('t:'+this.fTiming[this.currFrame].toFixed(3), dx +70, dy-8); // animation frame duration (sec)
-            ctx.fillText('w:'+dWidth, dx + (dWidth/2)-12 , dy + dHeight+15); // width of sprite frame
-            ctx.fillText('h:'+dHeight, dx + dWidth+5, dy + (dHeight/2)+5);  // height of sprite frame
+            ctx.font = '10px monospace';
+
+            ctx.fillText('f:'+this.fSequence[this.currFrame], dx+25, dy-5); // animation frame number
+
+            let dur = Math.floor(this.adjFTiming[this.currFrame] * 1000);
+            ctx.fillText('ms:'+dur, dx+50, dy-5); // animation frame duration in milliseconds
         }
 
         this.elapsedTime += tick;
+
     }
-
-
 }

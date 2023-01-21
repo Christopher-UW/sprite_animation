@@ -1,7 +1,7 @@
 class Waluigi {
     constructor() {
         this.game = GAME_ENGINE;
-
+        this.anima = ANIMANAGER;
 
         this.charState = 'standing'
 
@@ -12,37 +12,7 @@ class Waluigi {
 
         this.speed = 100;
 
-        // this.acceleration = 1;
-        // this.timeSpeed = 0.18;
-        // this.timeAccel = 1;
-        // this.timeArr = [];
-
-        this.animaSpeed = 150; /* <== animation speed as a percentage like 50 % for half speed
-                                           I want ot add a in window slider for this, but that is hard */
-
-        // for (let i = 0; i < 8; i++) {
-        //     this.timeArr[i] = this.timeSpeed;
-        //     this.timeSpeed *= this.timeAccel;
-        // }
-
-        // this.anima = new AnimationManager();
-        // this.anima.addSpriteSheet('stones', ASSET_MANAGER.getAsset("stones.png"));
-        // this.anima.addSpriteSet('ground', 'stones', 0, 0, 960, 306, [0]);
-
-        // this.anima.addSpriteSheet('running', ASSET_MANAGER.getAsset("running.png"));
-        // this.anima.addSpriteSet('runSet', 'running', 0, 0, 304, 46, [3, 36, 80, 119, 155, 186, 226, 265])
-        // this.anima.addAnimation('runAni', 'runSet',
-        //                     [   1,   2,   3,   4,   5,   6,   7,   0],
-        //                     0.2, this.animaSpeed)
-
-        // this.anima.addSpriteSheet('smash', ASSET_MANAGER.getAsset("smash2.png"));
-        // this.anima.addSpriteSet('smashSet', 'smash', 0, 0, 467, 64, [0, 59, 125, 171, 235, 295, 357, 409])
-        // this.anima.addAnimation(
-        //                     'smashAni',
-        //                     'smashSet',
-        //                     [   0,    1,    2,    3,    4,    5,    6,    2,    4,    5,    6,    7],
-        //                     [0.36, 0.10, 0.10, 0.16, 0.09, 0.25, 0.15, 0.35, 0.09, 0.25, 0.10, 0.10],
-        //                     this.animaSpeed);
+        this.animaSpeed = 150;
 
     };
 
@@ -94,7 +64,6 @@ class Waluigi {
     };
 
     draw(ctx) {
-
         this.anima.drawSprite(ctx, 'ground', 0, 0, 220, 0.5)
         this.anima.drawSprite(ctx, 'ground', 0, 480, 220, 0.5)
         this.anima.drawSprite(ctx, 'ground', 0, 960, 220, 0.5)
