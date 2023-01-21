@@ -42,8 +42,8 @@ class Waluigi {
     let bothAandD = this.game.keys.d && this.game.keys.a;
 
 
-    if (notAorD || bothAandD) this.anima.resetAnimation('runAni');
-    if (!this.game.keys.s) this.anima.resetAnimation('smashAni');
+    if (notAorD || bothAandD) this.anima.animations.get('runAni').reset();  // this.anima.resetAnimation('runAni');
+    if (!this.game.keys.s) this.anima.animations.get('smashAni').reset();   // this.anima.resetAnimation('smashAni');
 
     if (this.game.keys.s) { // smashing
         this.charState = 'smashing';
@@ -63,20 +63,20 @@ class Waluigi {
 
     };
 
-    draw(ctx) {
-        this.anima.drawSprite(ctx, 'ground', 0, 0, 220, 0.5)
-        this.anima.drawSprite(ctx, 'ground', 0, 480, 220, 0.5)
-        this.anima.drawSprite(ctx, 'ground', 0, 960, 220, 0.5)
+    draw(ctx) {  // drawSprite(ctx, spriteNum, dx, dy, xScale, yScale = xScale)
+                 // renderAnimation(tick, ctx, dx, dy, xScale, yScale = xScale)
+
+        this.anima.getSpriteSet('ground').tileSprite(ctx, 0, 0, 230, 4, 1, 0.3);
 
         switch (this.charState) {
             case "standing":
-                this.anima.drawSprite(ctx, 'runSet', 0, this.x, this.y, this.xScale, this.yScale) // lolz ... NO
+                this.anima.getSpriteSet('runSet').drawSprite(ctx, 0, this.x, this.y, this.xScale, this.yScaled); // TODO: replace with standing animation
                 break;
             case "running":
-                this.anima.runAnimation(this.game.clockTick, ctx, 'runAni', this.x, this.y, this.xScale, this.yScale);
+                this.anima.animations.get('runAni').renderAnimation(this.game.clockTick, ctx, this.x, this.y, this.xScale, this.yScale)
                 break;
             case "smashing":
-                this.anima.runAnimation(this.game.clockTick, ctx, 'smashAni', this.x-25, this.y-36, this.xScale, this.yScale);
+                this.anima.animations.get('smashAni').renderAnimation(this.game.clockTick, ctx, this.x-25, this.y-36, this.xScale, this.yScale)
                 break;
 
         }

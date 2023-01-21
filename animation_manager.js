@@ -1,5 +1,5 @@
 // Global Stuff
-const DEBUG = true;
+const DEBUG = false;
 
 // main class
 class AnimationManager {
@@ -8,6 +8,10 @@ class AnimationManager {
         this.spriteSets  =  new Map(); // <string: id, object: SpriteSet>
         this.animations  =  new Map(); // <string: id, object: Animation>
     }
+    // you don't need to use the getters, but they are here if you prefer to use them 😀
+    getSpriteSheet(id) {return this.spriteSheets.get(id);}
+    getSpriteSet(id) {return this.spriteSets.get(id);}
+    getAnimation(id) {return this.animations.get(id);}
 
     /**
      * Adds a SpriteSheet to the collection
@@ -47,8 +51,6 @@ class AnimationManager {
         this.spriteSets.set(id, new SpriteSet(id, sheetObj, xOrig, yOrig, width, height, xList));
     }
 
-    /* Param Types: ID → string, frameSequence → int[], frameTimings → num[] units(milliseconds) */
-
     /**
      * 
      * @param {string | Animation} id The unique ID of this Animation, or a pre-built Animation object
@@ -84,28 +86,6 @@ class AnimationManager {
         this.animations.set(id, new Animation(id, setObj, fSequence, fTiming));
 
     }
-
-    getSpriteSet(id) {
-        return this.spriteSets.get(id);
-    }
-
-    getAnimation(id) {
-        return this.animations.get(id)
-    }
-
-    drawSprite(ctx, id, sprite, dx, dy, xScale, yScale) {
-        this.spriteSets.get(id).drawSprite(ctx, sprite, dx, dy, xScale, yScale);
-    }
-
-    runAnimation(tick, ctx, id, dx, dy, xScale, yScale) {
-        this.animations.get(id).renderAnimation(tick, ctx, dx, dy, xScale, yScale)
-    }
-
-    resetAnimation(...animations) {
-        animations.forEach(id => {    
-            this.animations.get(id).init();   
-        })
-    }
 }
 
 
@@ -128,42 +108,56 @@ class SpriteSet {
         Object.assign(this, {id, sheet, xOrig, yOrig, width, height, xlist});
     }
 
-    getSprite(SpriteFrame) { // a unique sprite to be used for frames of animation
-        if (SpriteFrame >= this.xlist.length || SpriteFrame < 0) {
-            console.error(`spriteSets.${this.id}.getFrameStats: ${SpriteFrame} is out of range`)
-        }
-        if (typeof SpriteFrame !== 'number') {
-            //console.error(`spriteSets.${this.id}.getFrameStats: ${SpriteFrame} is not valid input`)
-            throw new Error(`spriteSets.${this.id}.getFrameStats: ${SpriteFrame} is not valid input`)
-        }
-        const sx = this.xOrig + this.xlist[SpriteFrame];
-        const sy = this.yOrig;
-        /* IF the next frame x-pos ↓ is defined THEN ↓ use next frames orig as end of this frame
-                                   ↓                 ↓     ↓ ELSE use the width as end point */
-        const sWidth = (this.xlist[SpriteFrame+1]? this.xlist[SpriteFrame+1] : this.width) - this.xlist[SpriteFrame];
-        const sHeight = this.height; // we assume the same for all frames | TODO: may change later
-        return [this.sheet, sx, sy, sWidth, sHeight];
+    sx(spriteKey) {
+        return this.xOrig + this.xlist[spriteKey]
+    }
+    sy(spriteKey) { // we assume the same for all frames , WILL change latter
+        return this.yOrig;
+    }
+    sWidth(spriteKey) {
+        return (this.xlist[spriteKey+1]? this.xlist[spriteKey+1] : this.width) - this.xlist[spriteKey];
     }
 
-    drawSprite(ctx, spriteNum, dx, dy, xScale, yScale = xScale) {
-        const info = this.getSprite(spriteNum);
-        let dWidth  = xScale * info[3];
-        let dHeight = yScale * info[4];
-        ctx.drawImage(info[0], info[1], info[2], info[3], info[4], dx, dy, dWidth, dHeight);
+    sHeight(spriteKey) { // we assume the same for all frames , WILL change latter
+        return this.Height = this.height;
+    }
+
+    drawSprite(ctx, spriteKey, dx, dy, xScale, yScale = xScale) {
+        let sx = this.sx(spriteKey);
+        let sy = this.sy(spriteKey);
+        let sWidth = this.sWidth(spriteKey);
+        let sHeight =  this.sHeight(spriteKey);
+        let dWidth  = xScale * sWidth;
+        let dHeight = yScale * sHeight;
+
+        ctx.drawImage(this.sheet, sx, sy, sWidth, sHeight, dx, dy, dWidth, dHeight);
 
         if (DEBUG) {
             ctx.lineWidth = 1;
             ctx.fillStyle = "rgba(100, 220, 255, 1)";
             ctx.strokeStyle = "rgba(50, 255, 50, 0.8)";
-            ctx.font = '10px monospace';
+            ctx.font = '9px monospace';
             
             ctx.strokeRect(dx, dy, dWidth, dHeight);
-            ctx.fillText('s:'+spriteNum, dx, dy-5); // sprite number
+            ctx.fillText('s:'+spriteKey, dx+2, dy-5); // sprite number
+            ctx.fillText('x:'+Math.floor(dx), dx+2, dy-25); // sprite number
+            ctx.fillText('y:'+Math.floor(dy), dx+2, dy-15); // sprite number
             ctx.fillText('w:'+dWidth, dx + (dWidth/2)-12 , dy + dHeight+15); // width of sprite
             ctx.fillText('h:'+dHeight, dx + dWidth+5, dy + (dHeight/2)+5);  // height of sprite
         }
     }
 
+    tileSprite(ctx, spriteKey, dx, dy, numHorzTiles, numVertTiles, xScale, yScale = xScale) {
+        let width = this.sWidth(spriteKey);
+        let height =  this.sHeight(spriteKey);
+
+        for (let h = 0; h < numHorzTiles; h++) {
+            for (let v = 0; v < numVertTiles; v++) {
+                this.drawSprite(ctx, spriteKey, dx + h * width * xScale, dy + v * height * yScale, xScale, yScale);
+            }
+        }
+    }
+    
 };
 
 /**
@@ -181,14 +175,18 @@ class Animation {
             throw new Error('Animation: fSequence and fTiming are not same length');
         
         Object.assign(this, {id, spriteSet, fSequence, fTiming});
+
         this.adjFTiming = [...this.fTiming];
         this.fCount = this.fSequence.length;
 
-        this.loop = false;
-        this.init();
+        this.elapsedTime = 0;
+        this.currFrame = 0;
+        this.nextFrameAt = this.fTiming[0];
+        this.loop = true;
+
     }
 
-    init() { // also used to reset animation
+    reset() {
         this.elapsedTime = 0;
         this.currFrame = 0;
         this.nextFrameAt = this.fTiming[0];
@@ -213,10 +211,16 @@ class Animation {
             return this.fSequence[this.currFrame]
         }
         else { // if currFrame is the last frame
-            this.elapsedTime = 0;
-            this.currFrame = 0;
-            this.nextFrameAt = this.adjFTiming[this.currFrame];
-            return this.fSequence[this.currFrame]
+            if (this.loop) {
+                this.elapsedTime = 0;
+                this.currFrame = 0;
+                this.nextFrameAt = this.adjFTiming[this.currFrame];
+                return this.fSequence[this.currFrame]
+            }
+            else {
+                return this.fSequence[this.currFrame]
+            }
+
         }
     }
 
