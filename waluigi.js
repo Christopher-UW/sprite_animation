@@ -5,12 +5,12 @@ class Waluigi {
 
         this.charState = 'standing'
 
-        this.x = 50;
-        this.y = 50;
-        this.xScale = 2;
-        this.yScale = 2;
+        this.x = 200;
+        this.y = 440;
+        this.xScale = 3;
+        this.yScale = 3;
 
-        this.speed = 120;
+        this.speed = 10;
 
         this.animaSpeed = 150;
 
@@ -42,8 +42,8 @@ class Waluigi {
     let bothAandD = this.game.keys.d && this.game.keys.a;
 
 
-    // if (notAorD || bothAandD) this.anima.animations.get('runAni').reset();  // this.anima.resetAnimation('runAni');
-    // if (!this.game.keys.s) this.anima.animations.get('smashAni').reset();   // this.anima.resetAnimation('smashAni');
+    if (notAorD || bothAandD) this.anima.animations.get('runAni').reset();  // this.anima.resetAnimation('runAni');
+    if (!this.game.keys.s) this.anima.animations.get('smashAni').reset();   // this.anima.resetAnimation('smashAni');
 
     if (this.game.keys.s) { // smashing
         this.charState = 'smashing';
@@ -66,8 +66,6 @@ class Waluigi {
     draw(ctx) {  // drawSprite(ctx, spriteNum, dx, dy, xScale, yScale = xScale)
                  // renderAnimation(tick, ctx, dx, dy, xScale, yScale = xScale)
 
-        this.anima.getSpriteSet('ground').tileSprite(ctx, 0, 0, 225, 4, 1, 0.3);
-
         switch (this.charState) {
             case "standing":
                 this.anima.getSpriteSet('runSet').drawSprite(ctx, 0, this.x, this.y, this.xScale, this.yScaled); // TODO: replace with standing animation
@@ -76,7 +74,7 @@ class Waluigi {
                 this.anima.animations.get('runAni').renderAnimation(this.game.clockTick, ctx, this.x, this.y, this.xScale, this.yScale)
                 break;
             case "smashing":
-                // this.anima.animations.get('smashAni').renderAnimation(this.game.clockTick, ctx, this.x-25, this.y-36, this.xScale, this.yScale)
+                this.anima.animations.get('smashAni').renderAnimation(this.game.clockTick, ctx, this.x, this.y, this.xScale, this.yScale)
                 break;
 
         }

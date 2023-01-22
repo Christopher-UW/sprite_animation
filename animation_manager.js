@@ -1,5 +1,5 @@
 // Global Stuff
-const DEBUG = 1;
+const DEBUG = 0;
 
 // main class
 class AnimationManager {
@@ -47,9 +47,9 @@ class AnimationManager {
      * @param {string} id The unique ID of this SpriteSet
      * @param {string | object} spriteSheet Unique ID of SpriteSheet or a SpriteSheet Object
      * @param {number[] | number} x_origs List of X-origin's of each sprite or a single shared X-origin
-     * @param {number[] | number} x_ends List of X-end cord. of each sprite or a single shared width for all sprites
+     * @param {number[] | number} x_ends List of X-end cord. of each sprite or a single shared X-end cord
      * @param {number[] | number} y_origs List of Y-origin's of each sprite or a single shared Y-origin
-     * @param {number[] | number} y_ends List of Y-end cord. of each sprite or a single shared height for all sprites
+     * @param {number[] | number} y_ends List of Y-end cord. of each sprite or a single shared Y-end cord
      * @param {number[] | number} x_offsets Optional : offsets each sprite's x position when drawn
      * @param {number[] | number} y_offsets Optional : offsets each sprite's y position when drawn
      */
@@ -71,15 +71,17 @@ class AnimationManager {
         if (typeof y_origs === 'number') y_origs = Array(sprtCount).fill(y_origs); // y origins are all the same
 
         if (typeof x_ends === 'number') { // widths are all the same
-            widths = Array(sprtCount).fill(widths);
-        } else if (typeof x_ends === 'object') { // calculate widths
+            x_ends = Array(sprtCount).fill(widths);
+        }
+        if (typeof x_ends === 'object') { // calculate widths
             for (let i = 0; i < sprtCount; i++)
                 widths.push(x_ends[i] - x_origs[i]);
         }
 
         if (typeof y_ends === 'number') { // heights are all the same
-            heights = Array(sprtCount).fill(y_ends); 
-        } else if (typeof y_ends === 'object') { // calculate heights
+            y_ends = Array(sprtCount).fill(y_ends);
+        }
+        if (typeof y_ends === 'object') { // calculate heights
             for (let i = 0; i < sprtCount; i++)
                 heights.push(y_ends[i] - y_origs[i]);
         }
@@ -109,7 +111,7 @@ class AnimationManager {
      * @param {number[]} fSequence In-order list of sprites in animation 
      * @param {number[] | number} fTiming In-order list of frame durations (milliseconds) pass one number for all same timing
      */
-    addAnimation(id, spriteSetName, fSequence, fTiming, animaSpeed) {
+    addAnimation(id, spriteSetName, fSequence, fTiming) {
         if (id instanceof Animation && typeof spriteSetName === 'undefined') {
             if (this.animations.has(id.id)) {
                 console.log(`addAnimation: animations.${id.id} has been overridden!`)
@@ -152,8 +154,8 @@ class SpriteSet {
         let dHeight = sHeight * yScale;
 
 
-        dx += this.x_offset_s[sKey];
-        dy += this.y_offset_s[sKey];
+        dx += this.x_offset_s[sKey] * xScale;
+        dy += this.y_offset_s[sKey] * yScale;
 
         if (DEBUG >= 2) {
             console.log(`dx:${dx}  dy:${dy}  xs:${xScale}  ys:${yScale}  sx:${sx}  sy:${sy}  sWidth:${sWidth}  
@@ -183,8 +185,8 @@ class SpriteSet {
 
         for (let h = 0; h < numHorzTiles; h++) {
             for (let v = 0; v < numVertTiles; v++) {
-                let dx_t = (dx + (h * sWidth)) * xScale;
-                let dy_t = (dy + (v * sHeight)) * yScale;
+                let dx_t = dx + h * sWidth * xScale;
+                let dy_t = dy + v * sHeight * yScale;
                 this.drawSprite(ctx, sKey, dx_t, dy_t, xScale, yScale);
             }
         }
@@ -257,6 +259,7 @@ class Animation {
 
     }
 
+    
     renderAnimation(tick, ctx, dx, dy, xScale = 1, yScale = xScale) {
         let frameNum = this.calcFrame();
         this.spriteSet.drawSprite(ctx, frameNum, dx, dy, xScale, yScale)

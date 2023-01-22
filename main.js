@@ -3,7 +3,7 @@ const GAME_ENGINE = new GameEngine();
 const ASSET_MANAGER = new AssetManager("./assets/");
 const ANIMANAGER = new AnimationManager();
 
-ASSET_MANAGER.queueDownload("running.png", "smash2.png", "stones.png", "waluigi_sprites.png");
+ASSET_MANAGER.queueDownload("stones.png", "waluigi_sprites.png", "background.png");
 
 ASSET_MANAGER.downloadAll(() => {
 	const canvas = document.getElementById("gameWorld");
@@ -12,7 +12,7 @@ ASSET_MANAGER.downloadAll(() => {
 	new AnimationBuilder(); // <- just to build the sprites & animations into ANIMANAGER
 
 	GAME_ENGINE.addEntity(new Waluigi());
-	//GAME_ENGINE.addEntity(new Testy());
+	GAME_ENGINE.addEntity(new Background());
 
 	GAME_ENGINE.init(ctx);
 	GAME_ENGINE.start();
