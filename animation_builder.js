@@ -12,14 +12,14 @@ class AnimationBuilder {
                         [ 7, 41,  83, 123, 159, 190, 231, 271], // x orig
                         [39, 78, 119, 155, 188, 226, 264, 302], // x ends
                         57, 103); // y orig and height
-        ANIMANAGER.addAnimation('runAni', 'runSet', [1, 2, 3, 4, 5, 6, 7, 0], 0.1);
+        ANIMANAGER.addAnimation('runAni', 'runSet', [1, 2, 3, 4, 5, 6, 7, 0], 0.12);
 
         ANIMANAGER.addSpriteSheet('leftrun', ASSET_MANAGER.getAsset('leftrun.png'));
         ANIMANAGER.addSpriteSet('runLeftSet', 'leftrun', 
                         [ 0, 38,  76, 114, 147, 183, 224, 263], // x orig
                         [31, 71, 112, 143, 179, 219,261, 295], // x ends
                         0, 96); // y orig and height
-        ANIMANAGER.addAnimation('runLeftAni', 'runLeftSet', [0,7,6,5,4,3,2,1], 0.1);
+        ANIMANAGER.addAnimation('runLeftAni', 'runLeftSet', [0,7,6,5,4,3,2,1], 0.12);
 
         ANIMANAGER.addSpriteSet('smashSet', 'FULL',
                         [  6,  66, 132, 178, 242, 301], // x orig
