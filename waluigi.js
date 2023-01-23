@@ -5,7 +5,7 @@ class Waluigi {
 
         this.charState = 'standing'
 
-        this.x = 200;
+        this.x = 400;
         this.y = 440;
         this.xScale = 3;
         this.yScale = 3;
@@ -16,34 +16,14 @@ class Waluigi {
 
     };
 
-    resetAllAnimations() {
-        // this.anima.resetAnimation('smashAni', 'runAni');
-    }
-
     update() {
-        // this.x += this.speed * this.game.clockTick;
-        // this.speed *= this.acceleration;
-        // if (this.x >= 900) {
-        //     this.x = 0;
-        //     this.speed = 150;
-        // }
-        
-
-        // if(this.game.keys.d && !this.game.keys.a) // right and not left
-        //     this.x += this.speed * this.game.clockTick;
-        // if(this.game.keys.a && !this.game.keys.d) // left and not right
-        //     this.x -= this.speed * this.game.clockTick;
-        // // if(this.game.keys.w && !this.game.keys.s) // up and not down
-        // //     this.y -= this.speed * this.game.clockTick;
-        // // if(this.game.keys.s && !this.game.keys.w) // down and not up
-        // //     this.y += this.speed * this.game.clockTick;
 
     let notAorD = !this.game.keys.d && !this.game.keys.a;
     let bothAandD = this.game.keys.d && this.game.keys.a;
 
 
-    if (notAorD || bothAandD) this.anima.animations.get('runAni').reset();  // this.anima.resetAnimation('runAni');
-    if (!this.game.keys.s) this.anima.animations.get('smashAni').reset();   // this.anima.resetAnimation('smashAni');
+    //if (notAorD || bothAandD) this.anima.animations.get('runAni').reset();
+    if (!this.game.keys.s) this.anima.animations.get('smashAni').reset();
 
     if (this.game.keys.s) { // smashing
         this.charState = 'smashing';
@@ -52,13 +32,13 @@ class Waluigi {
         // prevents running in place when 'a' and 'd' keys are pressed
         this.charState = 'standing';
     }
-    else if (this.game.keys.d && !this.game.keys.a) {// moving left 
+    else if (this.game.keys.d && !this.game.keys.a) {// moving right 
         this.x += this.speed * this.game.clockTick;
-        this.charState = 'running';
+        this.charState = 'runningRight';
     }
-    else if (this.game.keys.a && !this.game.keys.d) { // moving right 
+    else if (this.game.keys.a && !this.game.keys.d) { // moving left 
         this.x -= this.speed * this.game.clockTick;
-        this.charState = 'running';
+        this.charState = 'runningLeft';
     }
 
     };
@@ -68,10 +48,13 @@ class Waluigi {
 
         switch (this.charState) {
             case "standing":
-                this.anima.getSpriteSet('runSet').drawSprite(ctx, 0, this.x, this.y, this.xScale, this.yScaled); // TODO: replace with standing animation
+                this.anima.animations.get('standAni').renderAnimation(this.game.clockTick, ctx, this.x, this.y, this.xScale, this.yScale)
                 break;
-            case "running":
+            case "runningRight":
                 this.anima.animations.get('runAni').renderAnimation(this.game.clockTick, ctx, this.x, this.y, this.xScale, this.yScale)
+                break;
+            case "runningLeft":
+                this.anima.animations.get('runLeftAni').renderAnimation(this.game.clockTick, ctx, this.x, this.y, this.xScale, this.yScale)
                 break;
             case "smashing":
                 this.anima.animations.get('smashAni').renderAnimation(this.game.clockTick, ctx, this.x, this.y, this.xScale, this.yScale)

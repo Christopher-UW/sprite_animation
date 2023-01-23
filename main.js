@@ -3,7 +3,7 @@ const GAME_ENGINE = new GameEngine();
 const ASSET_MANAGER = new AssetManager("./assets/");
 const ANIMANAGER = new AnimationManager();
 
-ASSET_MANAGER.queueDownload("stones.png", "waluigi_sprites.png", "background.png");
+ASSET_MANAGER.queueDownload("stones.png", "waluigi_sprites.png", "background.png", "leftrun.png");
 
 ASSET_MANAGER.downloadAll(() => {
 	const canvas = document.getElementById("gameWorld");
