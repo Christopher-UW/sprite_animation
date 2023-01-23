@@ -17,7 +17,6 @@ ASSET_MANAGER.downloadAll(() => {
 	GAME_ENGINE.init(ctx);
 	GAME_ENGINE.start();
 	
-	
 });
 
 
